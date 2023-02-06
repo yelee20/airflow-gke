@@ -2,6 +2,7 @@ import os
 import json
 import tempfile
 
+
 from airflow.utils.decorators import apply_defaults
 from airflow.models.baseoperator import BaseOperator
 from airflow.providers.google.cloud.hooks.gcs import GCSHook
