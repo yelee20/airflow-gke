@@ -1,4 +1,4 @@
-FROM apache/airflow:2.4.1
+FROM --platform=linux/amd64 apache/airflow:2.4.1-python3.8
 
 WORKDIR ${AIRFLOW_HOME}
 
