@@ -24,7 +24,6 @@ def notify_success(context: Context):
     slack_success_notification_task = SlackWebhookOperator(
         task_id=SLACK_SUCCESS_NOTIFICATION_TASK_ID,
         http_conn_id=SLACK_CONNECTION_ID,
-        webhook_token=SLACK_WEBHOOK_DAILY_BATCH_BOT,
         message=message,
     )
     return slack_success_notification_task.execute(context)
@@ -36,12 +35,11 @@ def notify_failure(context: Context):
     slack_failure_notification_task = SlackWebhookOperator(
         task_id=SLACK_SUCCESS_NOTIFICATION_TASK_ID,
         http_conn_id=SLACK_CONNECTION_ID,
-        webhook_token=SLACK_WEBHOOK_DAILY_BATCH_BOT,
         message=message,
     )
     return slack_failure_notification_task.execute(context)
 
-def print_context(context: Context):
+def print_context(**context):
     """Print the Airflow context and ds variable from the context."""
     print("!! test dag")
     return "Whatever you return gets printed in the logs"
@@ -75,7 +73,6 @@ with DAG(
     noti_on_execute = SlackWebhookOperator(
         task_id=NOTI_ON_EXECUTE_TASK_ID,
         http_conn_id=SLACK_CONNECTION_ID,
-        webhook_token=SLACK_WEBHOOK_DAILY_BATCH_BOT,
         message=(
             "hk_property dag started"
         )
