@@ -3,6 +3,7 @@ from typing import Final
 
 from airflow.models import DAG
 from airflow.providers.slack.operators.slack_webhook import SlackWebhookOperator
+from airflow.operators.python_operator import PythonOperator
 
 from constants.constants import S3_BUCKET_NAME
 from constants.data_category import DataCategory
@@ -40,6 +41,12 @@ def notify_failure(context: Context):
     )
     return slack_failure_notification_task.execute(context)
 
+def print_context(context: Context):
+    """Print the Airflow context and ds variable from the context."""
+    print("!! test dag")
+    return "Whatever you return gets printed in the logs"
+
+
 default_args = {
     "owner": "yewon",
     "start_date": "2002-08-17T14:15:23Z",
@@ -59,6 +66,12 @@ with DAG(
         },
         on_success_callback=notify_success
 ) as dag:
+
+    test = PythonOperator(
+        task_id="test",
+        python_callable=print_context
+    )
+
     noti_on_execute = SlackWebhookOperator(
         task_id=NOTI_ON_EXECUTE_TASK_ID,
         http_conn_id=SLACK_CONNECTION_ID,
@@ -76,5 +89,5 @@ with DAG(
         execution_date="{{ utc_to_hkt(ts) }}",
     )
 
-    noti_on_execute >> sourcing_task
+    test >> noti_on_execute >> sourcing_task
 
