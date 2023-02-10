@@ -1,16 +1,15 @@
 from contextvars import Context
 from typing import Final
 
-from airflow.models import DAG
+from airflow.models import DAG, Param
 from airflow.providers.slack.operators.slack_webhook import SlackWebhookOperator
-from airflow.operators.python_operator import PythonOperator
 
 from constants.constants import S3_BUCKET_NAME
 from constants.data_category import DataCategory
 from constants.providers import Provider
 from constants.webhook import SLACK_CONNECTION_ID, SLACK_WEBHOOK_DAILY_BATCH_BOT
-from constants.dag_id import HK_PROPERTY as DAG_ID
-from operators.hk_property_sourcing import HKPropertySourcingOperator
+from constants.dag_id import MIDLAND_PROPERTY as DAG_ID
+from operators.midland_reality_sourcing import MidLandRealitySourcingOperator
 
 from utils.date import udm_utc_to_hkt
 
@@ -18,12 +17,14 @@ NOTI_ON_EXECUTE_TASK_ID: Final[str] = "noti_on_execute_task"
 
 SLACK_SUCCESS_NOTIFICATION_TASK_ID = "slack_success_notification_task_id"
 
+
 def notify_success(context: Context):
     message = f""":large_green_circle: dag <{DAG_ID}> ran successfully!"""
 
     slack_success_notification_task = SlackWebhookOperator(
         task_id=SLACK_SUCCESS_NOTIFICATION_TASK_ID,
         http_conn_id=SLACK_CONNECTION_ID,
+        webhook_token=SLACK_WEBHOOK_DAILY_BATCH_BOT,
         message=message,
     )
     return slack_success_notification_task.execute(context)
@@ -35,6 +36,7 @@ def notify_failure(context: Context):
     slack_failure_notification_task = SlackWebhookOperator(
         task_id=SLACK_SUCCESS_NOTIFICATION_TASK_ID,
         http_conn_id=SLACK_CONNECTION_ID,
+        webhook_token=SLACK_WEBHOOK_DAILY_BATCH_BOT,
         message=message,
     )
     return slack_failure_notification_task.execute(context)
@@ -45,6 +47,8 @@ default_args = {
     "on_failure_callback": notify_failure,
     "retries": 3,
 }
+
+execution_date_1 = "{{ ds }}"
 
 with DAG(
         dag_id=DAG_ID,
@@ -58,22 +62,20 @@ with DAG(
         },
         on_success_callback=notify_success
 ) as dag:
-
     noti_on_execute = SlackWebhookOperator(
         task_id=NOTI_ON_EXECUTE_TASK_ID,
         http_conn_id=SLACK_CONNECTION_ID,
+        webhook_token=SLACK_WEBHOOK_DAILY_BATCH_BOT,
         message=(
-            "hk_property dag started"
+            "midland_property dag started"
         )
     )
-
-    sourcing_task = HKPropertySourcingOperator(
-        task_id="hk_property_sourcing_task",
+    sourcing_task = MidLandRealitySourcingOperator(
+        task_id="midland_reality_sourcing_task",
         bucket_name=S3_BUCKET_NAME,
-        provider=Provider.HK_PROPERTY.value,
+        provider=Provider.MIDLAND_REALITY.value,
         data_category=DataCategory.ROOM.value,
         execution_date="{{ utc_to_hkt(ts) }}",
     )
 
     noti_on_execute >> sourcing_task
-
