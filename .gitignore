@@ -1,2 +1,6 @@
 *.yaml
 *.DS_Store
+*.logs
+
+\airflow_env
+\logs

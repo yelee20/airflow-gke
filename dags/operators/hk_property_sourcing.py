@@ -127,7 +127,7 @@ class HKPropertySourcingOperator(BaseOperator):
             space = rent.find("div", class_="sc-16di5lh-5 cxijRp").get_text().replace("ft²", "")
             space_element = re.split(" |GFA|\\xa0", space)
 
-            sfa, price_per_sfa, gfa, price_per_gfa = self.get_sfa_gfa(space_element)
+            sfa, gfa = self.get_sfa_gfa(space_element)
             mon_price = rent.find("span", class_="sc-1fa9gj4-4 iPsFLJ").get_text()[1:]
             location = rent.find("span", class_="sc-u3x3v7-11 iPCCQr").get_text()
             features = rent.find_all("div", class_="sc-u3x3v7-18 gwyDpM")

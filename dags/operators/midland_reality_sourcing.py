@@ -102,8 +102,10 @@ class MidLandRealitySourcingOperator(BaseOperator):
             sfa, gfa = space[0].get_text().replace("SFA", "").replace("ft²", "").replace("\xa0", ""), \
                        space[1].get_text().replace("GFA", "").replace("ft²", "").replace("\xa0", "")
             return sfa, gfa
-        else:
+        elif len(space) == 1:
             return space[0].get_text().replace("SFA", "").replace("ft²", "").replace("\xa0", ""), None
+        else:
+            return None, None
 
     def get_property_info(self, soup):
         import pandas as pd
@@ -152,7 +154,6 @@ class MidLandRealitySourcingOperator(BaseOperator):
         result_csv = result_df.to_csv(index=False)
 
         self.log.info("------- Property Info -------")
-        self.log.info(result_csv)
         self.log.info(f"# of properties: {len(rooms)}")
         return result_csv
 
