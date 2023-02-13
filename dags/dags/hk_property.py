@@ -3,7 +3,6 @@ from typing import Final
 
 from airflow.models import DAG
 from airflow.providers.slack.operators.slack_webhook import SlackWebhookOperator
-from airflow.operators.python_operator import PythonOperator
 
 from constants.constants import S3_BUCKET_NAME
 from constants.data_category import DataCategory
@@ -73,6 +72,7 @@ with DAG(
         provider=Provider.HK_PROPERTY.value,
         data_category=DataCategory.ROOM.value,
         execution_date="{{ utc_to_hkt(ts) }}",
+        base_url="https://www.hkp.com.hk/en/list/rent"
     )
 
     noti_on_execute >> sourcing_task

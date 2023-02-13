@@ -1,7 +1,7 @@
 from contextvars import Context
 from typing import Final
 
-from airflow.models import DAG, Param
+from airflow.models import DAG
 from airflow.providers.slack.operators.slack_webhook import SlackWebhookOperator
 
 from constants.constants import S3_BUCKET_NAME
@@ -28,7 +28,6 @@ def notify_success(context: Context):
         message=message,
     )
     return slack_success_notification_task.execute(context)
-
 
 def notify_failure(context: Context):
     message = f":exclamation: dag <{DAG_ID}> failed"
@@ -76,6 +75,7 @@ with DAG(
         provider=Provider.MIDLAND_REALITY.value,
         data_category=DataCategory.ROOM.value,
         execution_date="{{ utc_to_hkt(ts) }}",
+        base_url="https://www.midland.com.hk/en/list/rent"
     )
 
     noti_on_execute >> sourcing_task
