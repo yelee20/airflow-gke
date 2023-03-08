@@ -1,5 +1,6 @@
 from typing import List
 from operators.property_sourcing_base import PropertySourcingBaseOperator
+from bs4 import BeautifulSoup
 
 
 class MidLandRealitySourcingOperator(PropertySourcingBaseOperator):
@@ -14,9 +15,10 @@ class MidLandRealitySourcingOperator(PropertySourcingBaseOperator):
         else:
             return None, None
 
-    def get_property_info(self, soup):
+    def get_property_info(self, html_source):
         import pandas as pd
-
+        soup = BeautifulSoup(html_source, 'html.parser')
+        
         rooms = []
         rents = soup.find_all("div", class_="sc-1r1odlb-23 etCoIy")
 

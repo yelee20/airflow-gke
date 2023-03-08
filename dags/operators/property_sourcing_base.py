@@ -43,6 +43,25 @@ class PropertySourcingBaseOperator(BaseOperator):
         self.log.info("------- driver -------")
 
         return driver
+    
+
+    def scroll(driver):
+        import time
+
+        last_page_height = driver.execute_script(
+            "return document.documentElement.scrollHeight"
+        )
+
+        sub_height = last_page_height
+
+        for i in range(10):
+            driver.execute_script(
+                f"window.scrollTo(0, {sub_height / 10 * i});"
+            )
+            time.sleep(0.5)
+        time.sleep(4)
+
+        return driver.page_source
 
     def scroll_to_end(self, driver, stand_height=0, retry_count=0):
         self.log.info("------- Scrolling -------")
@@ -84,7 +103,7 @@ class PropertySourcingBaseOperator(BaseOperator):
             self.log.info(f"last_page_height: {last_page_height}")
         return driver.page_source
 
-    def get_html_source(self, driver):
+    def get_html_source(self, driver, scroll_to_end: bool = True):
         import time
         from bs4 import BeautifulSoup
         self.log.info("------- Getting HTML source - STEP 1 -------")
@@ -93,16 +112,19 @@ class PropertySourcingBaseOperator(BaseOperator):
         driver.get(self.base_url)
 
         time.sleep(5)
-        html_source = self.scroll_to_end(driver)
+
         self.log.info("------- Getting HTML source - SCROLLING -------")
-        soup = BeautifulSoup(html_source, 'html.parser')
-        return soup
+
+        if scroll_to_end:
+            return self.scroll_to_end(driver)
+        else:
+            return self.scroll(driver)
 
     @staticmethod
     def get_sfa_gfa(space: List):
         pass
 
-    def get_property_info(self, soup):
+    def get_property_info(self, html_source):
         raise NotImplementedError()
 
     def upload_property_info_to_s3(self, df_data) -> None:
@@ -129,7 +151,7 @@ class PropertySourcingBaseOperator(BaseOperator):
 
     def execute(self, context: Context) -> None:
         driver = self.get_chrome_driver()
-        soup = self.get_html_source(driver)
-        results = self.get_property_info(soup)
+        html_source = self.get_html_source(driver)
+        results = self.get_property_info(html_source)
 
         self.upload_property_info_to_s3(results)

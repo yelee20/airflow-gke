@@ -1,5 +1,6 @@
 from typing import List
 from operators.property_sourcing_base import PropertySourcingBaseOperator
+from bs4 import BeautifulSoup
 
 
 class HKPropertySourcingOperator(PropertySourcingBaseOperator):
@@ -12,9 +13,10 @@ class HKPropertySourcingOperator(PropertySourcingBaseOperator):
         else:
             return space_info[1], space_info[5]
 
-    def get_property_info(self, soup):
+    def get_property_info(self, html_source):
         import re
         import pandas as pd
+        soup = BeautifulSoup(html_source, 'html.parser')
 
         rooms = []
         rents = soup.find_all("div", class_="sc-u3x3v7-25 hBypJX")
