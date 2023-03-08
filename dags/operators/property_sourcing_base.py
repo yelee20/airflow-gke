@@ -45,8 +45,9 @@ class PropertySourcingBaseOperator(BaseOperator):
         return driver
     
 
-    def scroll(driver):
+    def scroll(self, driver):
         import time
+        self.log.info("------- Scrolling -------")
 
         last_page_height = driver.execute_script(
             "return document.documentElement.scrollHeight"
