@@ -5,13 +5,31 @@ from utils.string import multiple_replace
 import re
 
 class SquareFootSourcingOperator(PropertySourcingBaseOperator):
-    def get_paginated_html_source(self, driver):
+
+    def get_html_source_(self, driver, scroll_to_end: bool = True):
+        import time
+        self.log.info("------- Getting HTML source - STEP 1 -------")
+
+        driver.implicitly_wait(3)
+        driver.get(self.base_url)
+
+        time.sleep(5)
+
+        self.log.info("------- Getting HTML source - SCROLLING -------")
+
+        if scroll_to_end:
+            return self.scroll_to_end(driver)
+        else:
+            return self.scroll(driver)
+
+    def get_html_source(self, driver):
+        from bs4 import BeautifulSoup
 
         whole_source = ""
         next_url = self.base_url
         
         while next_url:
-            html_source = self.get_html_source(driver=driver, scroll_to_end=False)
+            html_source = self.get_html_source_(driver=driver, scroll_to_end=False)
             whole_source += html_source
             tmp_soup = BeautifulSoup(html_source, 'html.parser')
 
@@ -63,10 +81,3 @@ class SquareFootSourcingOperator(PropertySourcingBaseOperator):
         self.log.info("------- Property Info -------")
         self.log.info(f"# of properties: {len(rooms)}")
         return result_csv
-
-    def execute(self, context: Context) -> None:
-        driver = self.get_chrome_driver()
-        html_source = self.get_paginated_html_source(driver)
-        results = self.get_property_info(html_source)
-
-        self.upload_property_info_to_s3(results)

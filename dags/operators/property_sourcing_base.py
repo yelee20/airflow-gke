@@ -102,7 +102,7 @@ class PropertySourcingBaseOperator(BaseOperator):
 
             self.log.info(f"last_page_height: {last_page_height}")
         return driver.page_source
-
+    
     def get_html_source(self, driver, scroll_to_end: bool = True):
         import time
         from bs4 import BeautifulSoup
