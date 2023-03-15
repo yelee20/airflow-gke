@@ -102,6 +102,7 @@ class PropertySourcingBaseOperator(BaseOperator):
             time.sleep(1)
 
             self.log.info(f"last_page_height: {last_page_height}")
+            
         return driver.page_source
     
     def get_html_source(self, driver, scroll_to_end: bool = True):
@@ -127,32 +128,63 @@ class PropertySourcingBaseOperator(BaseOperator):
 
     def get_property_info(self, html_source):
         raise NotImplementedError()
+    
+    def upload_property_info_to_gcs(self, json_data) -> None:
 
-    def upload_property_info_to_s3(self, df_data) -> None:
-        from airflow.providers.amazon.aws.hooks.s3 import S3Hook
-        from utils.aws.s3 import upload_bytes_to_s3, get_sourcing_path
-        from constants.constants import AWS_S3_CONN_ID
+        from utils.aws.s3 import get_sourcing_path
+        from constants.constants import GCP_CONN_ID, GCS_BUCKET_NAME
+        from airflow.providers.google.cloud.hooks.gcs import GCSHook
+
+        from os import path
+        import tempfile
+
+        import pandas as pd
 
         self.log.info("------- Uploading property info to AWS S3 -------")
 
         sourcing_path = get_sourcing_path(provider=self.provider,
                                           data_category=self.data_category,
                                           execution_date=self.execution_date)
-        s3_hook = S3Hook(AWS_S3_CONN_ID)
-        data_bytes = df_data.encode()
+        df_data = pd.DataFrame(json_data)
+        
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = path.join(tmp_dir, "sourcing.csv")
+            df_data.to_csv(tmp_path, index=False)
 
-        upload_bytes_to_s3(
-            s3_hook=s3_hook,
-            bucket_name=self.bucket_name,
-            data_key=f"{sourcing_path}.csv",
-            bytes_data=data_bytes,
-        )
+            # Upload file to GCS.
+            gcs_hook = GCSHook(GCP_CONN_ID)
+            gcs_hook.upload(
+                bucket_name=GCS_BUCKET_NAME,
+                object_name=f"{sourcing_path}.csv",
+                filename=tmp_path,
+            )
 
         self.log.info("------- PROPERTY INFO UPLOADED -------")
+
+    # def upload_property_info_to_s3(self, df_data) -> None:
+    #     from airflow.providers.amazon.aws.hooks.s3 import S3Hook
+    #     from utils.aws.s3 import upload_bytes_to_s3, get_sourcing_path
+    #     from constants.constants import AWS_S3_CONN_ID
+
+    #     self.log.info("------- Uploading property info to AWS S3 -------")
+
+    #     sourcing_path = get_sourcing_path(provider=self.provider,
+    #                                       data_category=self.data_category,
+    #                                       execution_date=self.execution_date)
+    #     s3_hook = S3Hook(AWS_S3_CONN_ID)
+    #     data_bytes = df_data.encode()
+
+    #     upload_bytes_to_s3(
+    #         s3_hook=s3_hook,
+    #         bucket_name=self.bucket_name,
+    #         data_key=f"{sourcing_path}.csv",
+    #         bytes_data=data_bytes,
+    #     )
+
+    #     self.log.info("------- PROPERTY INFO UPLOADED -------")
 
     def execute(self, context: Context) -> None:
         driver = self.get_chrome_driver()
         html_source = self.get_html_source(driver)
         results = self.get_property_info(html_source)
-
-        self.upload_property_info_to_s3(results)
+        self.upload_property_info_to_gcs(results)

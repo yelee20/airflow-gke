@@ -9,4 +9,8 @@ S3_BUCKET_NAME: Final[str] = (
     else "yewon-dev"
 )
 
+GCS_BUCKET_NAME: Final[str] = "property-dashboard"
+
 AWS_S3_CONN_ID: Final[str] = "S3_default"
+
+GCP_CONN_ID: Final[str] = "google_cloud_default"

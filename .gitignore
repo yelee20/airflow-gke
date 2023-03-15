@@ -1,6 +1,7 @@
 *.yaml
 *.DS_Store
-*.logs
+*.logss
+__pycache__/
 
 \airflow_env
 \logs

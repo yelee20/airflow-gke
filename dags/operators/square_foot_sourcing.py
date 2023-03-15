@@ -75,9 +75,7 @@ class SquareFootSourcingOperator(PropertySourcingBaseOperator):
             if room_info not in rooms:
                 rooms.append(room_info)
 
-        result_df = pd.DataFrame(rooms)
-        result_csv = result_df.to_csv(index=False)
-
         self.log.info("------- Property Info -------")
+        self.log.info(rooms)
         self.log.info(f"# of properties: {len(rooms)}")
-        return result_csv
+        return rooms

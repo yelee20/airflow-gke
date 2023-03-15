@@ -1,6 +1,5 @@
 from typing import List
 from operators.property_sourcing_base import PropertySourcingBaseOperator
-from bs4 import BeautifulSoup
 
 
 class HKPropertySourcingOperator(PropertySourcingBaseOperator):
@@ -15,7 +14,8 @@ class HKPropertySourcingOperator(PropertySourcingBaseOperator):
 
     def get_property_info(self, html_source):
         import re
-        import pandas as pd
+        from bs4 import BeautifulSoup
+
         soup = BeautifulSoup(html_source, 'html.parser')
 
         rooms = []
@@ -60,11 +60,10 @@ class HKPropertySourcingOperator(PropertySourcingBaseOperator):
             if room_info not in rooms:
                 rooms.append(room_info)
 
-        result_df = pd.DataFrame(rooms)
-        result_csv = result_df.to_csv(index=False)
+        
 
         self.log.info("------- Property Info -------")
-        self.log.info(result_csv)
+        self.log.info(rooms)
         self.log.info(f"# of properties: {len(rooms)}")
-        return result_csv
+        return rooms
         
