@@ -14,3 +14,8 @@ GCS_BUCKET_NAME: Final[str] = "property-dashboard"
 AWS_S3_CONN_ID: Final[str] = "S3_default"
 
 GCP_CONN_ID: Final[str] = "google_cloud_default"
+
+GCP_PROJECT_ID="property-hk-380705"
+GCP_REGION = 'us-central1'
+GCP_CLUSTER_NAME = 'property-cluster'
+

@@ -71,7 +71,6 @@ with DAG(
     )
     sourcing_task = MidLandRealitySourcingOperator(
         task_id="midland_reality_sourcing_task",
-        bucket_name=S3_BUCKET_NAME,
         provider=Provider.MIDLAND_REALITY.value,
         data_category=DataCategory.ROOM.value,
         execution_date="{{ utc_to_hkt(ts) }}",

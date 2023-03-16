@@ -8,7 +8,6 @@ from typing import Any
 
 class PropertySourcingBaseOperator(BaseOperator):
     template_fields = (
-        "bucket_name",
         "provider",
         "data_category",
         "execution_date",
@@ -17,7 +16,6 @@ class PropertySourcingBaseOperator(BaseOperator):
 
     def __init__(
             self,
-            bucket_name: str,
             provider: str,
             data_category: str,
             execution_date: str,
@@ -25,7 +23,6 @@ class PropertySourcingBaseOperator(BaseOperator):
             **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
-        self.bucket_name = bucket_name
         self.provider = provider
         self.execution_date = execution_date
         self.data_category = data_category
@@ -160,28 +157,6 @@ class PropertySourcingBaseOperator(BaseOperator):
             )
 
         self.log.info("------- PROPERTY INFO UPLOADED -------")
-
-    # def upload_property_info_to_s3(self, df_data) -> None:
-    #     from airflow.providers.amazon.aws.hooks.s3 import S3Hook
-    #     from utils.aws.s3 import upload_bytes_to_s3, get_sourcing_path
-    #     from constants.constants import AWS_S3_CONN_ID
-
-    #     self.log.info("------- Uploading property info to AWS S3 -------")
-
-    #     sourcing_path = get_sourcing_path(provider=self.provider,
-    #                                       data_category=self.data_category,
-    #                                       execution_date=self.execution_date)
-    #     s3_hook = S3Hook(AWS_S3_CONN_ID)
-    #     data_bytes = df_data.encode()
-
-    #     upload_bytes_to_s3(
-    #         s3_hook=s3_hook,
-    #         bucket_name=self.bucket_name,
-    #         data_key=f"{sourcing_path}.csv",
-    #         bytes_data=data_bytes,
-    #     )
-
-    #     self.log.info("------- PROPERTY INFO UPLOADED -------")
 
     def execute(self, context: Context) -> None:
         driver = self.get_chrome_driver()
