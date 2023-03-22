@@ -10,7 +10,7 @@ def get_sourcing_path(
         data_category: str,
         execution_date: Union[str, date],
 ) -> str:
-    return f"{provider}/_tmp/{data_category}/{execution_date}"
+    return f"{provider}/_tmp/{execution_date}/{data_category}/{execution_date}"
 
 
 def upload_json_to_s3(

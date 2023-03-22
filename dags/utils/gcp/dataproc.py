@@ -20,6 +20,8 @@ def get_cluster_config(
     worker_disk_size=300,
     master_disk_size=300,
     storage_bucket=gcs_bucket_name,
+    metadata={"PIP_PACKAGES": "delta-spark requests pandas openpyxl"},
+
     ).make()
 
 
@@ -36,5 +38,8 @@ def get_spark_submit_job_driver(
     "placement": {"cluster_name": cluster_name},
     "pyspark_job": {"main_python_file_uri": main_file,
                     "args": entry_point_arguments,
+                    "properties": { 
+                        "spark.jars.packages": "io.delta:delta-core_2.12:1.0.1",
+                        },
                     "python_file_uris": additional_files},
 }
