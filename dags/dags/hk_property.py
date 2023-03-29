@@ -58,7 +58,7 @@ default_args = {
     "owner": "yewon",
     "start_date": "2002-08-17T14:15:23Z",
     "on_failure_callback": notify_failure,
-    "retries": 3,
+    "retries": 3
 }
 
 with DAG(
