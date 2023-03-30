@@ -15,7 +15,6 @@ class HKPropertySourcingOperator(PropertySourcingBaseOperator):
     def get_property_info(self, html_source):
         import re
         from bs4 import BeautifulSoup
-
         soup = BeautifulSoup(html_source, 'html.parser')
 
         rooms = []

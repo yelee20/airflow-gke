@@ -26,16 +26,12 @@ SLACK_SUCCESS_NOTIFICATION_TASK_ID = "slack_success_notification_task_id"
 
 PYSPARK_URI = "gs://property-dashboard/spark-job/property_spark/app/hk_property_tmp_to_src.py"
 
-# ARGUMENTS = ["--operation-date-str",
-#                 "{{ utc_to_hkt(ts) }}",
-#                 "--data-category",
-#                 DataCategory.ROOM.value,
-#             ]
-
 
 def notify_success(context: Context):
-    message = f""":large_green_circle: dag <{DAG_ID}> ran successfully!"""
-
+    message=f"""
+                :green_circle: Task ran Successfully!
+                *Dag*: {DAG_ID}
+                """
     slack_success_notification_task = SlackWebhookOperator(
         task_id=SLACK_SUCCESS_NOTIFICATION_TASK_ID,
         http_conn_id=SLACK_CONNECTION_ID,
@@ -45,8 +41,13 @@ def notify_success(context: Context):
 
 
 def notify_failure(context: Context):
-    message = f":exclamation: dag <{DAG_ID}> failed"
-
+    message=f"""
+                :red_circle: Task failed
+                *Task*: {context.get('task_instance').task_id}  
+                *Dag*: {DAG_ID} 
+                *Execution Time*: {context.get('execution_date')}  
+                *Log Url*: {context.get('task_instance').log_url} 
+                """
     slack_failure_notification_task = SlackWebhookOperator(
         task_id=SLACK_SUCCESS_NOTIFICATION_TASK_ID,
         http_conn_id=SLACK_CONNECTION_ID,
@@ -81,7 +82,7 @@ with DAG(
             "hk_property dag started"
         )
     )
-
+    
     sourcing_task = HKPropertySourcingOperator(
         task_id="hk_property_sourcing_task",
         provider=Provider.HK_PROPERTY.value,
