@@ -97,6 +97,8 @@ with DAG(
             cluster_config=get_cluster_config(),
             region=GCP_REGION,
             cluster_name=GCP_CLUSTER_NAME,
+            use_if_exists=True
+
         )
     
     pyspark_task = DataprocSubmitJobOperator(
