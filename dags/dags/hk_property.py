@@ -24,7 +24,8 @@ NOTI_ON_EXECUTE_TASK_ID: Final[str] = "noti_on_execute_task"
 
 SLACK_SUCCESS_NOTIFICATION_TASK_ID = "slack_success_notification_task_id"
 
-PYSPARK_URI = "gs://property-dashboard/spark-job/property_spark/app/hk_property_tmp_to_src.py"
+TMP_TO_SRC_PYSPARK_URI = "gs://property-dashboard/spark-job/property_spark/app/hk_property_tmp_to_src.py"
+SRC_TO_LOG0_PYSPARK_URI = "gs://property-dashboard/spark-job/property_spark/app/hk_property_src_to_log0.py"
 
 
 def notify_success(context: Context):
@@ -104,11 +105,26 @@ with DAG(
     pyspark_task = DataprocSubmitJobOperator(
         task_id="pyspark_task", 
         job=get_spark_submit_job_driver(
-            main_file=PYSPARK_URI,
+            main_file=TMP_TO_SRC_PYSPARK_URI,
             entry_point_arguments=["--provider-str",
                                    Provider.HK_PROPERTY.value,
                                     "--operation-date-str",
                                     "{{ utc_to_hkt(ts) }}",
+                                    "--data-category-str",
+                                    DataCategory.ROOM.value]
+
+        ), 
+        region=GCP_REGION, 
+        project_id=GCP_PROJECT_ID,
+    )
+
+        
+    pyspark_src_to_log0_task = DataprocSubmitJobOperator(
+        task_id="pyspark_src_to_log0_task", 
+        job=get_spark_submit_job_driver(
+            main_file=SRC_TO_LOG0_PYSPARK_URI,
+            entry_point_arguments=["--provider-str",
+                                   Provider.HK_PROPERTY.value,
                                     "--data-category-str",
                                     DataCategory.ROOM.value]
 

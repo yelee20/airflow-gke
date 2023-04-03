@@ -69,8 +69,8 @@ class SquareFootSourcingOperator(PropertySourcingBaseOperator):
 
             room_idx = int(url.split("property-")[-1])
 
-            room_info = {"room_idx": room_idx, "title": title, "bed_room_num": bed_room_num,"bath_room_num": bath_room_num,
-                                    "sfa": sfa, "mon_price": mon_price, "location": location, "features_combined": features, "url": url}
+            room_info = {"date": self.execution_date, "room_idx": room_idx, "title": title, "bed_room_num": bed_room_num,
+                         "bath_room_num": bath_room_num, "sfa": sfa, "mon_price": mon_price, "location": location, "features_combined": features, "url": url}
 
             if room_info not in rooms:
                 rooms.append(room_info)

@@ -20,5 +20,6 @@ RUN pip install --upgrade pip
 COPY requirements.txt .
 RUN pip install --user -r requirements.txt
 
-
-
+ENV AIRFLOW__SCHEDULER__JOB_HEARTBEAT_SEC=30
+ENV AIRFLOW__CORE__KILLED_TASK_CLEANUP_TIME=604800
+ENV AIRFLOW__SCHEDULER__SCHEDULE_AFTER_TASK_EXECUTION=False
