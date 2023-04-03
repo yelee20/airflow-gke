@@ -141,5 +141,5 @@ with DAG(
     )
 
 
-    noti_on_execute >> sourcing_task >> create_cluster >> pyspark_task >> delete_cluster
+    noti_on_execute >> sourcing_task >> create_cluster >> pyspark_task >> pyspark_src_to_log0_task >> delete_cluster
 
