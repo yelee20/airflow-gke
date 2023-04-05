@@ -26,7 +26,7 @@ SLACK_SUCCESS_NOTIFICATION_TASK_ID = "slack_success_notification_task_id"
 
 TMP_TO_SRC_PYSPARK_URI = "gs://property-dashboard/spark-job/property_spark/app/hk_property_tmp_to_src.py"
 SRC_TO_LOG0_PYSPARK_URI = "gs://property-dashboard/spark-job/property_spark/app/hk_property_src_to_log0.py"
-
+LOG0_TO_MYSQL_PYSPARK_URI = "gs://property-dashboard/spark-job/property_spark/app/hk_property_log0_to_mysql.py"
 
 def notify_success(context: Context):
     message=f"""
@@ -128,6 +128,15 @@ with DAG(
                                     "--data-category-str",
                                     DataCategory.ROOM.value]
 
+        ), 
+        region=GCP_REGION, 
+        project_id=GCP_PROJECT_ID,
+    )
+
+    pyspark_log0_to_mysql_task = DataprocSubmitJobOperator(
+        task_id="pyspark_log0_to_mysql_task", 
+        job=get_spark_submit_job_driver(
+            main_file=LOG0_TO_MYSQL_PYSPARK_URI
         ), 
         region=GCP_REGION, 
         project_id=GCP_PROJECT_ID,
