@@ -27,7 +27,7 @@ def get_cluster_config(
 
 def get_spark_submit_job_driver(
     main_file: str,
-    entry_point_arguments: Union[str, List[str]],
+    entry_point_arguments: Union[str, List[str]] = [],
     additional_files: Union[str, List[str]] = ADDITIONAL_PYTHON_FILES,
     cluster_name: str = GCP_CLUSTER_NAME,
     project_id: str = GCP_PROJECT_ID
