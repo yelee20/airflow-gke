@@ -136,7 +136,11 @@ with DAG(
     pyspark_log0_to_mysql_task = DataprocSubmitJobOperator(
         task_id="pyspark_log0_to_mysql_task", 
         job=get_spark_submit_job_driver(
-            main_file=LOG0_TO_MYSQL_PYSPARK_URI
+            main_file=LOG0_TO_MYSQL_PYSPARK_URI,
+            entry_point_arguments=["--provider-str",
+                                    Provider.HK_PROPERTY.value,
+                                    "--data-category-str",
+                                    DataCategory.ROOM.value]
         ), 
         region=GCP_REGION, 
         project_id=GCP_PROJECT_ID,
