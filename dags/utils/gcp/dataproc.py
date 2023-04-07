@@ -40,6 +40,7 @@ def get_spark_submit_job_driver(
                     "args": entry_point_arguments,
                     "properties": { 
                         "spark.jars.packages": "io.delta:delta-core_2.12:1.0.1",
+                        "spark.jars.packages": "mysql:mysql-connector-java-8.0.25.jar",
                         },
                     "python_file_uris": additional_files},
 }
