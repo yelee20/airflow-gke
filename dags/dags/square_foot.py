@@ -68,7 +68,6 @@ with DAG(
 
     sourcing_task = SquareFootSourcingOperator(
         task_id="square_foot_sourcing_task",
-        bucket_name=S3_BUCKET_NAME,
         provider=Provider.SQUARE_FOOT.value,
         data_category=DataCategory.ROOM.value,
         execution_date="{{ utc_to_hkt(ts) }}",
