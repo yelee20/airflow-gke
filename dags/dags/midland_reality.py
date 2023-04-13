@@ -22,7 +22,9 @@ from operators.midland_reality_sourcing import MidLandRealitySourcingOperator
 from utils.date import udm_utc_to_hkt
 
 TMP_TO_SRC_PYSPARK_URI = "gs://property-dashboard/spark-job/property_spark/app/hk_property_tmp_to_src.py"
-SRC_TO_LOG0_PYSPARK_URI = "gs://property-dashboard/spark-job/property_spark/app/hk_property_src_to_log0.py"
+SRC_TO_LOG0_PYSPARK_URI = "gs://property-dashboard/spark-job/property_spark/app/midland_reality_src_to_log0.py"
+LOG0_TO_MYSQL_PYSPARK_URI = "gs://property-dashboard/spark-job/property_spark/app/hk_property_log0_to_mysql.py"
+
 
 NOTI_ON_EXECUTE_TASK_ID: Final[str] = "noti_on_execute_task"
 
@@ -119,10 +121,23 @@ with DAG(
         job=get_spark_submit_job_driver(
             main_file=SRC_TO_LOG0_PYSPARK_URI,
             entry_point_arguments=["--provider-str",
-                                   Provider.HK_PROPERTY.value,
+                                   Provider.MIDLAND_REALITY.value,
                                     "--data-category-str",
                                     DataCategory.ROOM.value]
 
+        ), 
+        region=GCP_REGION, 
+        project_id=GCP_PROJECT_ID,
+    )
+
+    pyspark_log0_to_mysql_task = DataprocSubmitJobOperator(
+        task_id="pyspark_log0_to_mysql_task", 
+        job=get_spark_submit_job_driver(
+            main_file=LOG0_TO_MYSQL_PYSPARK_URI,
+            entry_point_arguments=["--provider-str",
+                                    Provider.MIDLAND_REALITY.value,
+                                    "--data-category-str",
+                                    DataCategory.ROOM.value]
         ), 
         region=GCP_REGION, 
         project_id=GCP_PROJECT_ID,
@@ -135,4 +150,11 @@ with DAG(
         region=GCP_REGION,
     )
 
-    noti_on_execute >> sourcing_task >> create_cluster >> pyspark_task >> pyspark_src_to_log0_task >> delete_cluster
+(noti_on_execute >> 
+    sourcing_task >> 
+    create_cluster >> 
+    pyspark_task >> 
+    pyspark_src_to_log0_task >> 
+    pyspark_log0_to_mysql_task >> 
+    delete_cluster)
+
