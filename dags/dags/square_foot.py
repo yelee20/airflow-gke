@@ -3,6 +3,13 @@ from typing import Final
 
 from airflow.models import DAG
 from airflow.providers.slack.operators.slack_webhook import SlackWebhookOperator
+from airflow.providers.google.cloud.operators.dataproc import (
+    DataprocCreateClusterOperator,
+    DataprocDeleteClusterOperator,
+    DataprocSubmitJobOperator
+)
+from constants.constants import GCP_PROJECT_ID, GCP_REGION, GCS_BUCKET_NAME, GCP_CLUSTER_NAME
+from utils.gcp.dataproc import get_cluster_config, get_spark_submit_job_driver
 
 from constants.constants import S3_BUCKET_NAME
 from constants.data_category import DataCategory
@@ -12,6 +19,10 @@ from constants.dag_id import SQUARE_FOOT as DAG_ID
 from operators.square_foot_sourcing import SquareFootSourcingOperator
 
 from utils.date import udm_utc_to_hkt
+
+TMP_TO_SRC_PYSPARK_URI = "gs://property-dashboard/spark-job/property_spark/app/hk_property_tmp_to_src.py"
+SRC_TO_LOG0_PYSPARK_URI = "gs://property-dashboard/spark-job/property_spark/app/midland_reality_src_to_log0.py"
+LOG0_TO_MYSQL_PYSPARK_URI = "gs://property-dashboard/spark-job/property_spark/app/hk_property_log0_to_mysql.py"
 
 NOTI_ON_EXECUTE_TASK_ID: Final[str] = "noti_on_execute_task"
 
@@ -74,5 +85,72 @@ with DAG(
         base_url="https://www.squarefoot.com.hk/en/rent"
     )
 
-    noti_on_execute >> sourcing_task
+    create_cluster = DataprocCreateClusterOperator(
+        task_id="create_cluster",
+        project_id=GCP_PROJECT_ID,
+        cluster_config=get_cluster_config(),
+        region=GCP_REGION,
+        cluster_name=GCP_CLUSTER_NAME,
+        use_if_exists=True
+    )
+
+    
+    pyspark_task = DataprocSubmitJobOperator(
+        task_id="pyspark_task", 
+        job=get_spark_submit_job_driver(
+            main_file=TMP_TO_SRC_PYSPARK_URI,
+            entry_point_arguments=["--provider-str",
+                                   Provider.SQUARE_FOOT.value,
+                                    "--operation-date-str",
+                                    "{{ utc_to_hkt(ts) }}",
+                                    "--data-category-str",
+                                    DataCategory.ROOM.value]
+
+        ), 
+        region=GCP_REGION, 
+        project_id=GCP_PROJECT_ID,
+    )
+
+    pyspark_src_to_log0_task = DataprocSubmitJobOperator(
+        task_id="pyspark_src_to_log0_task", 
+        job=get_spark_submit_job_driver(
+            main_file=SRC_TO_LOG0_PYSPARK_URI,
+            entry_point_arguments=["--provider-str",
+                                   Provider.SQUARE_FOOT.value,
+                                    "--data-category-str",
+                                    DataCategory.ROOM.value]
+
+        ), 
+        region=GCP_REGION, 
+        project_id=GCP_PROJECT_ID,
+    )
+
+    pyspark_log0_to_mysql_task = DataprocSubmitJobOperator(
+        task_id="pyspark_log0_to_mysql_task", 
+        job=get_spark_submit_job_driver(
+            main_file=LOG0_TO_MYSQL_PYSPARK_URI,
+            entry_point_arguments=["--provider-str",
+                                    Provider.SQUARE_FOOT.value,
+                                    "--data-category-str",
+                                    DataCategory.ROOM.value]
+        ), 
+        region=GCP_REGION, 
+        project_id=GCP_PROJECT_ID,
+    )
+
+    delete_cluster = DataprocDeleteClusterOperator(
+        task_id="delete_cluster", 
+        project_id=GCP_PROJECT_ID, 
+        cluster_name=GCP_CLUSTER_NAME, 
+        region=GCP_REGION,
+    )
+
+    (noti_on_execute >> 
+        sourcing_task >> 
+        create_cluster >> 
+        pyspark_task >> 
+        pyspark_src_to_log0_task >> 
+        pyspark_log0_to_mysql_task >> 
+        delete_cluster)
+
 

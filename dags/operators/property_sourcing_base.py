@@ -72,7 +72,7 @@ class PropertySourcingBaseOperator(BaseOperator):
         sub_height = last_page_height
 
         while True:
-            if retry_count >= 5 or last_page_height >= 60000:
+            if retry_count >= 5:
                 break
 
             current_height = driver.execute_script(
